@@ -3,20 +3,25 @@
 
 #define TAM_MAX 512
 
+int VariConEquipe = 0;
+
 using namespace std;
 
 typedef struct{
     char nome[81], descricao[TAM_MAX];
 
-}Times;
+}Equipe;
 
-void inserirPal(Times* times);
+void inserirPal(Equipe* equipe);
+void pesquisarPal(Equipe* equipe);
+void excluirPal(Equipe* equipe);
+void editarPal(Equipe* equipe);
 
 int main(){
     setlocale(LC_ALL,"");
     int a = 0;
     char op;
-    Times times[2];
+    Equipe equipe[2];
 
     do{
         system("cls");
@@ -30,12 +35,15 @@ int main(){
             break;
 
         case '2':
+            editarPal(equipe);
             break;
 
         case '3':
+            excluirPal(equipe);
             break;
 
         case '4':
+            pesquisarPal(times);
             break;
 
         case '5':
@@ -56,13 +64,55 @@ int main(){
     return 0;
 }
 
-void inserirPal(Times* times){ //Inutil por enquanto
+void inserirPal(Equipe* equipe){ //Inutil por enquanto
     system("cls");
 
     int a=0;
 
+    //Nessa parte insere na Lista
+
     do{
         a = 1;
         system("pause");
+    }while(a<1);
+}
+void pesquisarPal(Equipe* equipe){
+    int a = 0;
+    char equipeEntrada[TAM_MAX];
+
+    system("cls");
+
+    do{
+        printf("\nDigite o nome do time:");
+        fflush(stdin);
+        scanf("%[^\n]", equipeEntrada);
+        fflush(stdin);
+
+        //Aqui tu faz a boa da rapazezda
+
+    }while(a<1);
+}
+
+void excluirPal(Equipe* equipe){
+    do{
+        printf("\nDigite o nome do time:");
+        fflush(stdin);
+        scanf("%[^\n]", equipeEntrada);
+        fflush(stdin);
+
+        //Aqui tu faz a boa da rapazezda
+
+    }while(a<1);
+}
+
+void editarPal(Equipe* equipe){
+    do{
+        printf("\nDigite o nome do time:");
+        fflush(stdin);
+        scanf("%[^\n]", equipeEntrada);
+        fflush(stdin);
+
+        //Aqui tu faz a boa da rapazezda
+
     }while(a<1);
 }
