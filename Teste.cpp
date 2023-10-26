@@ -21,7 +21,7 @@ struct Letra
 {
 	char letra;
 	Letra *next, *prev;
-	Palavra PalavraInicio, *PalavraAux;
+	Palavra PalavraInicio, *PalavraAux, *PalavraAnt;
 };
 
 Letra LetraInicio, *LetraAux;
@@ -43,48 +43,45 @@ Letra* retorna_Letra_bychar(char letra)
 	return NULL;
 }
 
-int palavras_fora_de_ordem( /*1*/Palavra* palAux, /*2*/Palavra* palAux_next)
+int palavras_fora_de_ordem( /*1*/Palavra* palAux, /*2*/Palavra* pPalavra)
 {
     /*
     Parametros:
-        1: Palavra que vem primeiro na lista
-        2: Palavra que vem por ultimo na lista
+        1: Ponteiro Auxiliar da Lista de Palavras
+        2: Ponteiro Temporario do Loop
 
     Retorna:
         int(0): Palavras estao na ordem correta
         int(1): Palavras estao na ordem errada
     */
 
-    int tam = strcmp(palAux->name, palAux_next->name);
+    int tam = strcmp(palAux->name, pPalavra->name);
 
     switch(tam)
     {
     case 0:
         return 0;
     case 1:
-        for (int i = 0; i < strlen(palAux_next->name); i++)
+        for (int i = 0; i < strlen(pPalavra->name); i++)
         {
-            if (palAux->name[i] > palAux_next->name[i])
+            if (palAux->name[i] > pPalavra->name[i])
             {
-                return 1;
+                return 0;
             }
         }
         break;
     case -1:
         for (int i = 0; i < strlen(palAux->name); i++)
         {
-            if (palAux->name[i] > palAux_next->name[i])
+            if (palAux->name[i] > pPalavra->name[i])
             {
-                return 1;
+                return 0;
             }
         }
         break;
     }
 
-
-
-
-    return 0;
+    return 1;
 }
 
 void ordenar_palavras(char letra)
@@ -93,33 +90,35 @@ void ordenar_palavras(char letra)
 
 	Letra* pLetra = retorna_Letra_bychar(letra);
 	pLetra->PalavraAux = pLetra->PalavraInicio.next;
+	pLetra->PalavraAnt = &pLetra->PalavraInicio;
 
 	while(pLetra->PalavraAux)
 	{
 		Palavra* pPalavra = pLetra->PalavraInicio.next;
-		char trocar_palavra = 1;
+		char menor_palavra = 1;
 		while (pPalavra)
 		{
-			trocar_palavra = palavras_fora_de_ordem()
+			menor_palavra = palavras_fora_de_ordem( pLetra->PalavraAux, pPalavra);
 
 			pPalavra = pPalavra->next;
 		}
 
-		if (trocar_palavra)
+		if (menor_palavra)
 		{
 			Palavra* temp = NULL;
 			if (pLetra->PalavraAux->next)
+			{
 				temp = pLetra->PalavraAux->next;
-			pLetra->PalavraAux->prev->next = temp;
+			}
+			pLetra->PalavraAnt->next = pLetra->PalavraAux->next;
 			pLetra->PalavraAux->next = pLetra->PalavraInicio.next;
-			pLetra->PalavraAux->prev = &pLetra->PalavraInicio;
-			pLetra->PalavraInicio.next->prev = pLetra->PalavraAux;
 			pLetra->PalavraInicio.next = pLetra->PalavraAux;
 
 			break;
 		}
 
 		pLetra->PalavraAux = pLetra->PalavraAux->next;
+		pLetra->PalavraAnt = pLetra->PalavraAnt->next;
 	}
 
 	/*for( Letra* temp = LetraInicio.next; temp; temp = temp->next )
@@ -449,6 +448,7 @@ int main()
 	}
 
 	ordenar_letras();
+	ordenar_palavras('J');
 
 	printf("\n===========POS ORDENACAO============\n\n");
 
