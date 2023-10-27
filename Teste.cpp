@@ -232,6 +232,11 @@ void ordenar_palavras(char letra)
 
 }
 
+void ordenar_palavras(const char* palavra)
+{
+	ordenar_palavras(toupper(palavra[0]));
+}
+
 void ordenar_letras()
 {
 	char ordena_Letra = 1;
@@ -325,6 +330,12 @@ void ordenar_letras()
 
 void remove_Letra(Letra* Letra)
 {
+	if (!Letra)
+	{
+		printf("ERRO - Tentativa de remocao de ponteiro de Letra nulo\n");
+		return;
+	}
+
     if (Letra->next) Letra->next->prev = Letra->prev;
 	Letra->prev->next = Letra->next;
 	free(Letra);
@@ -370,31 +381,32 @@ Letra* retorna_Letra_Palavra(Palavra* Palavra)
 
 Palavra* retorna_Palavra_bynome(const char nome[])
 {
-	LetraAux = LetraInicio.next;
-	while(LetraAux)
+	LetraAux = retorna_Letra_bychar(nome[0]);
+	if(LetraAux)
 	{
 		int i = 0;
-		if (LetraAux->letra == nome[0])
+		LetraAux->PalavraAux = LetraAux->PalavraInicio.next;
+		while (LetraAux->PalavraAux)
 		{
-			LetraAux->PalavraAux = LetraAux->PalavraInicio.next;
-			while (LetraAux->PalavraAux)
+			if (strcmp( nome, LetraAux->PalavraAux->name ) == 0)
 			{
-				if (strcmp( nome, LetraAux->PalavraAux->name ) == 0)
-				{
-					return LetraAux->PalavraAux;
-				}
-
-				LetraAux->PalavraAux = LetraAux->PalavraAux->next;
-				i++;
+				return LetraAux->PalavraAux;
 			}
+			LetraAux->PalavraAux = LetraAux->PalavraAux->next;
+			i++;
 		}
-		LetraAux = LetraAux->next;
 	}
 	return NULL;
 }
 
 void remove_Palavra(Palavra* Palavra)
 {
+	if (!Palavra)
+    {
+		printf("ERRO - Tentativa de remocao de ponteiro de Palavra nulo\n");
+		return;
+	}
+
     Letra* p = retorna_Letra_Palavra(Palavra);
 
     if (!p)
@@ -410,16 +422,13 @@ void remove_Palavra(Palavra* Palavra)
         if (p->PalavraAux == Palavra)
         {
             p->PalavraAnt->next = p->PalavraAux->next;
-            p->PalavraAux->
-
             free(Palavra);
+			break;
         }
 
         p->PalavraAux = p->PalavraAux->next;
         p->PalavraAnt = p->PalavraAnt->next;
     }
-
-	free(Palavra);
 
 	if (p->PalavraInicio.next == NULL)
     {
@@ -484,23 +493,30 @@ int main()
 	insert_Palavra ("Paulo");
 	insert_Palavra ("Paulinho");
 
+	insert_Palavra ("Kurt");
+	insert_Palavra ("Kevin");
 	insert_Palavra ("Karina");
-
+	insert_Palavra ("Kelly");
+	insert_Palavra ("Kaue");
+	insert_Palavra ("Kaua");
+	insert_Palavra ("Kleber");
+	insert_Palavra ("Kaleb");
+	
 	insert_Palavra ("Vinicius");
 
 	insert_Palavra ("Olavo");
 
 	insert_Palavra ("Alberto");
 
-	c0 = insert_Palavra ("Joao");
+	insert_Palavra ("Joao Beto");
+	insert_Palavra ("Joao Silva");
+	insert_Palavra ("Joao Alvares");
 	insert_Palavra ("Jeremias");
 	insert_Palavra ("Jailson");
 	insert_Palavra ("Juan");
 	insert_Palavra ("Jose");
 
-	remove_Letra(retorna_Letra_bychar('J'));
-
-	printf("Palavra NOME: %s\n", retorna_Palavra_bynome("Joaozinho")->name);
+	remove_Letra(retorna_Letra_bychar('S'));
 
 	printf("\n===========POS INSERSAO============\n\n");
 
@@ -509,17 +525,20 @@ int main()
 	ordenar_letras();
 	ordenar_palavras('J');
 	ordenar_palavras('M');
+	ordenar_palavras("K");
 
 	printf("\n===========POS ORDENACAO============\n\n");
 
 	listar_dicionario();
 
+	printf("Palavra NOME: %s\n", retorna_Palavra_bynome("Karina")->name);
+
     printf("\n===========POS REMOCAO============\n\n");
 	//Remove
 	//remove_Letra_byindex(1);
 
-	//remove_Palavra(c0);
-	//remove_Palavra(c1);
+	remove_Palavra(c0);
+	remove_Palavra(c1);
 	remove_Palavra(c2);
 
 	//List
