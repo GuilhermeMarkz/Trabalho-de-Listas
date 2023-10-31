@@ -42,7 +42,8 @@ Letra* retorna_Letra_Palavra(Palavra* Palavra);
 void ordenar_letras();
 
 //Funções de controle da lista de Palavras
-Palavra* new_Palavra(const char name[]); //
+int aparicoes_de_string_em_descricao(const char string[]);
+Palavra* new_Palavra(const char name[], const char descricao[]); //
 
 Palavra* retorna_Palavra_bynome(char nome[]);
 Palavra* insert_Palavra(const char name[], const char descricao[]);
@@ -57,6 +58,9 @@ void inserirPal(Palavra* Palavra);
 void pesquisarPal(Palavra* Palavra);
 void excluirPal(Palavra* Palavra);
 void editarPal(Palavra* Palavra);
+
+void ordenarPal();
+void pesquisaRelevancia();
 
 int main(){
     setlocale(LC_ALL,"");
@@ -117,6 +121,7 @@ void inserirPal(){ //Inutil por enquanto
         system("pause");
     }while(a<1);
 }
+
 void pesquisarPal(Palavra* Palavra){
     int a = 0;
     char PalavraEntrada[TAM_MAX];
@@ -559,16 +564,17 @@ void remove_Palavra(Palavra* Palavra)
     }
 }
 
-Palavra* new_Palavra(const char name[])
+Palavra* new_Palavra(const char name[], const char descricao[])
 {
 	Palavra* c = (Palavra*) malloc(sizeof(Palavra));
 	strcpy(c->name, name);
+	strcpy(c->descricao, descricao);
 	return c;
 }
 
-Palavra* insert_Palavra(const char name[])
+Palavra* insert_Palavra(const char name[], const char descricao[])
 {
-    Palavra* Palavra = new_Palavra(name);
+    Palavra* Palavra = new_Palavra(name, descricao);
 
     if (LetraAux == NULL)
     {
