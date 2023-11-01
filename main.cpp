@@ -43,13 +43,13 @@ Letra* retorna_Letra_Palavra(Palavra* Palavra);
 void ordenar_letras();
 
 //Funções de controle da lista de Palavras
-int aparicoes_de_string_em_descricao(const char string[]);
+int num_substring_em_string(const char string[], const char substring[]); // 
 Palavra* new_Palavra(const char name[], const char descricao[]); //
 
 Palavra* retorna_Palavra_bynome(const char nome[]);
 Palavra* insert_Palavra(const char name[], const char descricao[]);
-void ordenar_palavras(const char letra);
-void remove_Palavra(Palavra* Palavra);
+void ordenar_palavras(const char letra);  // Ordena todas as palavras de uma letra
+void remove_Palavra(Palavra* Palavra); // Remove uma palavra da lista
 
 //Funções extras
 void listar_dicionario();
@@ -67,10 +67,24 @@ int main(){
     setlocale(LC_ALL,"");
     int a = 0;
     char op;
-    Palavra Palavra[2];
+
+    //Palavra Teste
+    insert_Palavra( "Flamengo", "O Clube de Regatas do Flamengo, mais conhecido simplesmente como Flamengo," 
+    " e popularmente pelos apelidos de Fla, Mengo e Mengão, é uma agremiação poliesportiva brasileira com sede na cidade do Rio de Janeiro," 
+    " capital do estado homônimo." );
+
+    //Palavra Teste
+    insert_Palavra( "Botafogo", "O Botafogo de Futebol e Regatas, ou simplesmente Botafogo, é uma agremiação poliesportiva brasileira,"
+    " com sede no bairro homônimo ao clube, na cidade do Rio de Janeiro. Nascido da fusão do Club de Regatas Botafogo com o Botafogo Football Club,"
+    " é um dos principais clubes do Brasil.");
 
     do{
         system("cls");
+
+        Palavra* palavra = retorna_Palavra_bynome("Botafogo");
+
+        printf("Número de ocorrências de \"Botafogo\" na descrição da palavra \"Botafogo\": %d\n", num_substring_em_string(palavra->descricao, "Botafogo"));
+
         printf("Dicionário de Times de Futebol");
         printf("\n[1]Inserir palavra\n[2]Editar palavra\n[3]Excluir palavra\n[4]Pesquisar palavra\n[5]Palavras ordenandas\n[6]Lista de palavras\n[7]Sair\n:");
         scanf("%c", &op);
@@ -239,6 +253,11 @@ void editarPal(){
     }while(a<1);
 }
 
+void pesquisaRelevancia()
+{
+
+}
+
 /*===========================================================================================
 
 CONTROLE DE LISTAS
@@ -353,6 +372,8 @@ int compara_palavras( /*1*/Palavra* palAux, /*2*/Palavra* pPalavra)
 void ordenar_palavras(char letra)
 {
     char ordena_palavra = 1;
+
+    letra = toupper(letra);
 
 	Letra* pLetra = retorna_Letra_bychar(letra);
 
@@ -685,4 +706,44 @@ Palavra* insert_Palavra(const char name[], const char descricao[])
     p->PalavraAux->next = NULL;
     //printf("Inseriu %s em %c!\n", p->PalavraAux->name, p->letra);
     return p->PalavraAux;
+}
+
+int num_substring_em_string(const char string[], const char substring[])
+{
+    char up_str[TAM_DES_MAX], up_substr[TAM_PAL_MAX];
+    char pal_str[TAM_PAL_MAX], des_str[TAM_DES_MAX], temp_des_str[TAM_DES_MAX];
+
+    int num_substr = 0;
+
+    memset(des_str, 0, sizeof(des_str));
+
+    strcpy(up_str, string);
+    strcpy(up_substr, substring);
+
+    toupper_str(up_str);
+    toupper_str(up_substr);
+
+    do
+    {
+        strcpy(temp_des_str, des_str);
+
+        if (sscanf(up_str, strcat(temp_des_str, "%s"), pal_str) == EOF)
+        {
+             printf("ATENCAO - String invalida\n");
+             break;
+        }   
+
+        if (strcmp(pal_str, up_substr))
+        {
+             num_substr++;
+        }
+
+        strcat(des_str, pal_str);
+
+        printf("pal_str: %s\n", pal_str);
+        printf("des_str: %s\n", des_str);
+
+    } while (strcmp(pal_str, " ") != 0);
+
+    return num_substr;
 }
