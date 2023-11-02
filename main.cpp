@@ -43,7 +43,7 @@ Letra* retorna_Letra_Palavra(Palavra* Palavra);
 void ordenar_letras();
 
 //Funções de controle da lista de Palavras
-int num_substring_em_string(const char string[], const char substring[]); // 
+int num_substring_em_string(const char string[], const char substring[]); //
 Palavra* new_Palavra(const char name[], const char descricao[]); //
 
 Palavra* retorna_Palavra_bynome(const char nome[]);
@@ -69,8 +69,8 @@ int main(){
     char op;
 
     //Palavra Teste
-    insert_Palavra( "Flamengo", "O Clube de Regatas do Flamengo, mais conhecido simplesmente como Flamengo," 
-    " e popularmente pelos apelidos de Fla, Mengo e Mengão, é uma agremiação poliesportiva brasileira com sede na cidade do Rio de Janeiro," 
+    insert_Palavra( "Flamengo", "O Clube de Regatas do Flamengo, mais conhecido simplesmente como Flamengo,"
+    " e popularmente pelos apelidos de Fla, Mengo e Mengão, é uma agremiação poliesportiva brasileira com sede na cidade do Rio de Janeiro,"
     " capital do estado homônimo." );
 
     //Palavra Teste
@@ -710,8 +710,10 @@ Palavra* insert_Palavra(const char name[], const char descricao[])
 
 int num_substring_em_string(const char string[], const char substring[])
 {
-    char up_str[TAM_DES_MAX], up_substr[TAM_PAL_MAX];
-    char pal_str[TAM_PAL_MAX], des_str[TAM_DES_MAX], temp_des_str[TAM_DES_MAX];
+    FILE* temp_buffer = fopen("temp", "w+"); //Arquivo de texto temporario
+
+    char up_str[TAM_DES_MAX], up_substr[TAM_PAL_MAX]; //Strings temporarias, recebem o valor dos parametros
+    char pal_str[TAM_PAL_MAX], des_str[TAM_DES_MAX];
 
     int num_substr = 0;
 
@@ -723,27 +725,41 @@ int num_substring_em_string(const char string[], const char substring[])
     toupper_str(up_str);
     toupper_str(up_substr);
 
-    do
+    fprintf(temp_buffer, "%s", up_str);
+
+    int i = 0;
+    int ii = 0;
+
+    fseek(temp_buffer, 0, SEEK_SET);
+    while ((des_str[i] = fgetc(temp_buffer)) != EOF )
     {
-        strcpy(temp_des_str, des_str);
-
-        if (sscanf(up_str, strcat(temp_des_str, "%s"), pal_str) == EOF)
+        //printf("%c", des_str[i]);
+        if ((des_str[i] >= 48 && des_str[i] <= 57) || (des_str[i] >= 65 && des_str[i] <= 90) || (des_str[i] >= 97 && des_str[i] <= 122))
         {
-             printf("ATENCAO - String invalida\n");
-             break;
-        }   
-
-        if (strcmp(pal_str, up_substr))
+            pal_str[ii] = des_str[i];
+            //printf("Palavra: %s\n", pal_str);
+            ii++;
+        }
+        else if (isspace(des_str[i]))
         {
-             num_substr++;
+            ii = 0;
+
+            printf("Palavra: %s", pal_str);
+            if (strcmp(pal_str, up_substr) == 0)
+            {
+                num_substr++;
+                printf(" @");
+            }
+
+            printf("\n");
+
+            memset(pal_str, 0, sizeof(pal_str));
         }
 
-        strcat(des_str, pal_str);
+        i++;
+    }
 
-        printf("pal_str: %s\n", pal_str);
-        printf("des_str: %s\n", des_str);
-
-    } while (strcmp(pal_str, " ") != 0);
+    system("pause");
 
     return num_substr;
 }
