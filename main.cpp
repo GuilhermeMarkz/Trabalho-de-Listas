@@ -759,6 +759,22 @@ int num_substring_em_string(const char string[], const char substring[])
         i++;
     }
 
+    if (pal_str[0] != '\0')
+    {
+        ii = 0;
+
+        printf("Palavra: %s", pal_str);
+        if (strcmp(pal_str, up_substr) == 0)
+        {
+            num_substr++;
+            printf(" @");
+        }
+
+        printf("\n");
+
+        memset(pal_str, 0, sizeof(pal_str));
+    }
+
     system("pause");
 
     return num_substr;
