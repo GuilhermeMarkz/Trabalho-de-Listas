@@ -19,6 +19,8 @@ using namespace std;
 typedef struct Letra Letra;
 typedef struct Palavra Palavra;
 
+FILE* pont_arq;
+
 struct Palavra
 {
 	char name[TAM_PAL_MAX], descricao[TAM_DES_MAX];
@@ -34,7 +36,10 @@ struct Letra
 
 Letra LetraInicio, *LetraAux;
 
-//Funções de controle da lista de Letras
+//FunÃ§Ãµes de Arquivos
+void salvar_lista_arquivos();
+
+//Funï¿½ï¿½es de controle da lista de Letras
 Letra* new_Letra(const char letra);
 Letra* insert_Letra(const char letra);
 void remove_Letra(Letra* Letra);
@@ -42,7 +47,7 @@ void remove_Letra(Letra* Letra);
 Letra* retorna_Letra_Palavra(Palavra* Palavra);
 void ordenar_letras();
 
-//Funções de controle da lista de Palavras
+//Funï¿½ï¿½es de controle da lista de Palavras
 int num_substring_em_string(const char string[], const char substring[]); //
 Palavra* new_Palavra(const char name[], const char descricao[]); //
 
@@ -51,7 +56,7 @@ Palavra* insert_Palavra(const char name[], const char descricao[]);
 void ordenar_palavras(const char letra);  // Ordena todas as palavras de uma letra
 void remove_Palavra(Palavra* Palavra); // Remove uma palavra da lista
 
-//Funções extras
+//Funï¿½ï¿½es extras
 void listar_dicionario();
 void toupper_str(char* str);
 
@@ -70,22 +75,22 @@ int main(){
 
     //Palavra Teste
     insert_Palavra( "Flamengo", "O Clube de Regatas do Flamengo, mais conhecido simplesmente como Flamengo,"
-    " e popularmente pelos apelidos de Fla, Mengo e Mengão, é uma agremiação poliesportiva brasileira com sede na cidade do Rio de Janeiro,"
-    " capital do estado homônimo." );
+    " e popularmente pelos apelidos de Fla, Mengo e Mengï¿½o, ï¿½ uma agremiaï¿½ï¿½o poliesportiva brasileira com sede na cidade do Rio de Janeiro,"
+    " capital do estado homï¿½nimo." );
 
     //Palavra Teste
-    insert_Palavra( "Botafogo", "O Botafogo de Futebol e Regatas, ou simplesmente Botafogo, é uma agremiação poliesportiva brasileira,"
-    " com sede no bairro homônimo ao clube, na cidade do Rio de Janeiro. Nascido da fusão do Club de Regatas Botafogo com o Botafogo Football Club,"
-    " é um dos principais clubes do Brasil.");
+    insert_Palavra( "Botafogo", "O Botafogo de Futebol e Regatas, ou simplesmente Botafogo, ï¿½ uma agremiaï¿½ï¿½o poliesportiva brasileira,"
+    " com sede no bairro homï¿½nimo ao clube, na cidade do Rio de Janeiro. Nascido da fusï¿½o do Club de Regatas Botafogo com o Botafogo Football Club,"
+    " ï¿½ um dos principais clubes do Brasil.");
 
     do{
         system("cls");
 
         Palavra* palavra = retorna_Palavra_bynome("Botafogo");
 
-        printf("Número de ocorrências de \"Botafogo\" na descrição da palavra \"Botafogo\": %d\n", num_substring_em_string(palavra->descricao, "Botafogo"));
+        printf("Nï¿½mero de ocorrï¿½ncias de \"Botafogo\" na descriï¿½ï¿½o da palavra \"Botafogo\": %d\n", num_substring_em_string(palavra->descricao, "Botafogo"));
 
-        printf("Dicionário de Times de Futebol");
+        printf("Dicionï¿½rio de Times de Futebol");
         printf("\n[1]Inserir palavra\n[2]Editar palavra\n[3]Excluir palavra\n[4]Pesquisar palavra\n[5]Palavras ordenandas\n[6]Lista de palavras\n[7]Sair\n:");
         scanf("%c", &op);
 
@@ -144,7 +149,7 @@ void inserirPal(){
     fflush(stdin);
     insert_Palavra(nomePalavra, descPalavra);
 
-    printf("\n\nRegistrar mais uma palavra? [1]Não [0]Sim\n->");
+    printf("\n\nRegistrar mais uma palavra? [1]Nï¿½o [0]Sim\n->");
     scanf("%d", &a);
 
     }while(a<1);
@@ -167,16 +172,16 @@ void pesquisarPal(){
         Palavra* palavra;
         palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra == NULL){
-            printf("Palavra não existe\n");
+            printf("Palavra nï¿½o existe\n");
 
         }
         else{
             printf("Nome da palavra: %s\n", palavra->name);
-            printf("Descrição: %s\n", palavra->descricao);
+            printf("Descriï¿½ï¿½o: %s\n", palavra->descricao);
         }
 
 
-        printf("Continuar pesquisando? Sim[0] Não[1]\n->");
+        printf("Continuar pesquisando? Sim[0] Nï¿½o[1]\n->");
         scanf("%d", &a);
 
     }while(a<1);
@@ -196,19 +201,19 @@ void excluirPal(){
         Palavra* palavra;
         palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra == NULL){
-            printf("Palavra não encontrada\n");
+            printf("Palavra nï¿½o encontrada\n");
         }
         else{
             printf("Palavra:%s\n", palavra->name);
-            printf("Descrição:%s\n", palavra->descricao);
-            printf("Remover time? Sim[0] Não[1]\n->");
+            printf("Descriï¿½ï¿½o:%s\n", palavra->descricao);
+            printf("Remover time? Sim[0] Nï¿½o[1]\n->");
             scanf("%d", &a);
             if(a==0){
                 remove_Palavra(palavra);
             }
         }
 
-        printf("Remover mais um time? Sim[0] Não[1]\n->");
+        printf("Remover mais um time? Sim[0] Nï¿½o[1]\n->");
         scanf("%d", &a);
 
     }while(a<1);
@@ -226,11 +231,11 @@ void editarPal(){
 
         Palavra* palavra=retorna_Palavra_bynome(PalavraEntrada);
         if(palavra==NULL){
-            printf("Palavra não encontrada:");
+            printf("Palavra nï¿½o encontrada:");
         }else{
             printf("Palavra:%s\n", palavra->name);
-            printf("Descrição:%s\n", palavra->descricao);
-            printf("O que deseja editar: Nome[1]/tDescrição[2]");
+            printf("Descriï¿½ï¿½o:%s\n", palavra->descricao);
+            printf("O que deseja editar: Nome[1]/tDescriï¿½ï¿½o[2]");
             scanf("%d", &a);
             switch(a){
                 case 1:
@@ -240,14 +245,14 @@ void editarPal(){
                     fflush(stdin);
                     break;
                 case 2:
-                    printf("Digite a descrição:");
+                    printf("Digite a descriï¿½ï¿½o:");
                     fflush(stdin);
                     scanf("%[^\n]", palavra->descricao);
                     fflush(stdin);
                     break;
                 }
         }
-        printf("Editar mais um time? Sim[0] Não[1]\n->");
+        printf("Editar mais um time? Sim[0] Nï¿½o[1]\n->");
         scanf("%d", &a);
 
     }while(a<1);
@@ -778,4 +783,39 @@ int num_substring_em_string(const char string[], const char substring[])
     system("pause");
 
     return num_substr;
+}
+
+void salvar_lista_arquivos()
+{
+
+    pont_arq = fopen("lista_atquivos.txt", "w+");
+
+    if(pont_arq){
+
+        Letra* pLetra = LetraInicio.next;
+
+        ordenar_letras();
+
+        while (pLetra)
+        {
+
+            ordenar_palavras(pLetra->letra);
+
+            Palavra* pPalavra = pLetra->PalavraInicio.next;
+            while (pPalavra)
+            {
+                fprintf(pont_arq, "%c {%s: %s.}", pLetra->letra, pPalavra->name, pPalavra->descricao);
+                pPalavra = pPalavra->next;
+            }
+            printf("\n");
+
+            pLetra = pLetra->next;
+        }
+    }
+    else{
+        printf("\nERRO! NÃ£o foi possivel salvar.");
+    }
+
+    fclose(pont_arq);
+
 }
