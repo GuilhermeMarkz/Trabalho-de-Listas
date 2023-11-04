@@ -83,6 +83,8 @@ int main(){
     " com sede no bairro hom�nimo ao clube, na cidade do Rio de Janeiro. Nascido da fus�o do Club de Regatas Botafogo com o Botafogo Football Club,"
     " � um dos principais clubes do Brasil.");
 
+
+
     do{
         system("cls");
 
@@ -125,6 +127,8 @@ int main(){
             continue;
         }
     }while(a<1);
+
+    salvar_lista_arquivos();
 
     return 0;
 }
@@ -804,7 +808,7 @@ void salvar_lista_arquivos()
             Palavra* pPalavra = pLetra->PalavraInicio.next;
             while (pPalavra)
             {
-                fprintf(pont_arq, "%c {%s: %s.}", pLetra->letra, pPalavra->name, pPalavra->descricao);
+                fprintf(pont_arq, "%c {%s: %s.}\n", pLetra->letra, pPalavra->name, pPalavra->descricao);
                 pPalavra = pPalavra->next;
             }
             printf("\n");
