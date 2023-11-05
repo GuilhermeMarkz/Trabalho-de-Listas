@@ -4,6 +4,7 @@
 #include <conio.h>
 #include <ctype.h>
 #include <locale.h>
+#include <windows.h>
 
 /*
 Lista de Letras que, por sua vez, possuem uma lista de seus filhos.
@@ -14,16 +15,26 @@ Lista de Letras que, por sua vez, possuem uma lista de seus filhos.
 
 int VariConPalavra = 0;
 
+FILE* pont_arq;
+
 using namespace std;
 
 typedef struct Letra Letra;
 typedef struct Palavra Palavra;
+typedef struct Palavra_ptr Palavra_ptr;
 
-FILE* pont_arq;
+struct Palavra_ptr
+{
+    short relevancia;
+    Palavra *palavra;
+    Palavra_ptr *next; 
+};
+
+Palavra_ptr PPalInicio;
 
 struct Palavra
 {
-	char name[TAM_PAL_MAX], descricao[TAM_DES_MAX];
+	char nome[TAM_PAL_MAX], descricao[TAM_DES_MAX];
 	Palavra *next;
 };
 
@@ -31,35 +42,40 @@ struct Letra
 {
 	char letra;
 	Letra *next, *prev;
-	Palavra PalavraInicio, *PalavraAux, *PalavraAnt;
+	Palavra PalavraInicio, *palavraAux, *palavraAnt;
 };
 
-Letra LetraInicio, *LetraAux;
+Letra letraInicio, *letraAux;
 
-//FunÃ§Ãµes de Arquivos
-void salvar_lista_arquivos();
+//Funções de Arquivos
+void salvar_lista_arquivos(); // Salva as alterações do sistema na memória secundária
 void carregar_lista_na_RAM();
 
-//Funï¿½ï¿½es de controle da lista de Letras
+//Funções de controle da lista de Letras
 Letra* new_Letra(const char letra);
 Letra* insert_Letra(const char letra);
 void remove_Letra(Letra* Letra);
 
-Letra* retorna_Letra_Palavra(Palavra* Palavra);
-void ordenar_letras();
+Letra* retorna_Letra_Palavra(Palavra* Palavra); // Retorna o ponteiro de uma letra conforme a primeira letra do nome de uma palavra
+void ordenar_letras(); // Ordena a lista de letras por ordem alfabética
 
-//Funï¿½ï¿½es de controle da lista de Palavras
-int num_substring_em_string(const char string[], const char substring[]); //
-Palavra* new_Palavra(const char name[], const char descricao[]); //
+//Funções de controle da lista de Palavras
+int num_substring_em_string(const char string[], const char substring[]); // Retorna o número de ocorrências de uma substring dentro de uma string
+Palavra* new_Palavra(const char nome[], const char descricao[]);
 
-Palavra* retorna_Palavra_bynome(const char nome[]);
-Palavra* insert_Palavra(const char name[], const char descricao[]);
+Palavra* retorna_Palavra_bynome(const char nome[]); // Retorna o ponteiro da palavra pela string de seu nome
+Palavra* insert_Palavra(const char nome[], const char descricao[]); // Insere uma nova palavra na lista de uma letra 
 void ordenar_palavras(const char letra);  // Ordena todas as palavras de uma letra
 void remove_Palavra(Palavra* Palavra); // Remove uma palavra da lista
 
-//Funï¿½ï¿½es extras
-void listar_dicionario();
-void toupper_str(char* str);
+//Funções extras
+void listar_dicionario(); // Lista as palavras do dicionário na forma de índice remisso
+void toupper_str(char* str); // Converte os chars de uma string para forma maiúscula
+int strcont( /*1*/const char* string, /*2*/const char* substring); //Analisa se a string contém a substring
+
+void gotoxy(unsigned short x, unsigned short y){
+     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),(COORD){(SHORT)(x-1),(SHORT)(y-1)});
+}
 
 void inserirPal();
 void pesquisarPal();
@@ -70,7 +86,6 @@ void ordenarPal();
 void pesquisaRelevancia();
 
 int main(){
-
     setlocale(LC_ALL,"");
     int a = 0;
     char op;
@@ -80,12 +95,9 @@ int main(){
     do{
         system("cls");
 
-        Palavra* palavra = retorna_Palavra_bynome("Botafogo");
-
-        printf("Nï¿½mero de ocorrï¿½ncias de \"Botafogo\" na descriï¿½ï¿½o da palavra \"Botafogo\": %d\n", num_substring_em_string(palavra->descricao, "Botafogo"));
-
-        printf("Dicionï¿½rio de Times de Futebol");
-        printf("\n[1]Inserir palavra\n[2]Editar palavra\n[3]Excluir palavra\n[4]Pesquisar palavra\n[5]Palavras ordenandas\n[6]Lista de palavras\n[7]Sair\n:");
+        printf("Dicionário de Times de Futebol");
+        printf("\n[1]Inserir palavra\n[2]Editar palavra\n[3]Excluir palavra\n[4]Pesquisar palavra\n[5]Ordenar dicionário\n[6]Lista de palavras\n"
+        "[7]Pesquisa por Relevância\n[8]Salvar e Sair\n:");
         scanf("%c", &op);
 
         switch(op){
@@ -106,13 +118,30 @@ int main(){
             break;
 
         case '5':
+            ordenarPal();
             break;
 
         case '6':
+            listar_dicionario();
             break;
 
         case '7':
-            a = 1;
+            pesquisaRelevancia();
+            break;
+
+        case '8':
+            salvar_lista_arquivos();
+
+            printf("> As alterações foram salvas!\n>> Sair do sistema? [0]Sim [Outra tecla]Não\n: ");
+            fflush(stdin);
+            scanf("%c", &op);
+
+            if (op == '0')
+            {
+                a = 1;
+            }
+
+            
             break;
         default:
             system("cls");
@@ -120,7 +149,6 @@ int main(){
         }
     }while(a<1);
 
-    salvar_lista_arquivos();
 
     return 0;
 }
@@ -130,22 +158,27 @@ void inserirPal(){
 
     char nomePalavra[TAM_PAL_MAX], descPalavra[TAM_DES_MAX];
 
-
     int a=0;
 
-
     do{
-    printf("Nome do time:");
+    system("cls");
+    printf("\n********************************************************************\n");
+    printf(  "* > Digite o nome do time:                                         *\n");
+    printf(  "********************* OBS: não use acentos! ************************\n");
+    gotoxy(28, 3);
     fflush(stdin);
     scanf("%[^\n]", nomePalavra);
     fflush(stdin);
-    printf("\nDescreva o time:");
+    gotoxy(1, 5);
+    printf("\n > Descreva o time:");
     fflush(stdin);
     scanf("%[^\n]", descPalavra);
     fflush(stdin);
+
+    nomePalavra[0] = toupper(nomePalavra[0]);
     insert_Palavra(nomePalavra, descPalavra);
 
-    printf("\n\nRegistrar mais uma palavra? [1]Nï¿½o [0]Sim\n->");
+    printf("\n\nRegistrar mais uma palavra? [1]Não [0]Sim\n->");
     scanf("%d", &a);
 
     }while(a<1);
@@ -157,27 +190,30 @@ void pesquisarPal(){
 
     char PalavraEntrada[TAM_PAL_MAX];
 
-    system("cls");
-
     do{
-        printf("\nDigite o nome do time:");
+        system("cls");
+        printf("\n********************************************************************\n");
+        printf(  "* > Digite o nome do time:                                         *\n");
+        printf(  "********************************************************************\n");
+        gotoxy(28, 3);
         fflush(stdin);
         scanf("%[^\n]", PalavraEntrada);
         fflush(stdin);
+        gotoxy(1, 5);
 
         Palavra* palavra;
         palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra == NULL){
-            printf("Palavra nï¿½o existe\n");
+            printf("\n\n > Palavra não encontrada!\n");
 
         }
         else{
-            printf("Nome da palavra: %s\n", palavra->name);
-            printf("Descriï¿½ï¿½o: %s\n", palavra->descricao);
+            printf("Nome da palavra: %s\n", palavra->nome);
+            printf("Descrição: %s\n", palavra->descricao);
         }
 
 
-        printf("Continuar pesquisando? Sim[0] Nï¿½o[1]\n->");
+        printf("Continuar pesquisando? Sim[0] Não[1]\n->");
         scanf("%d", &a);
 
     }while(a<1);
@@ -189,27 +225,37 @@ void excluirPal(){
 	int a = 0;
 	char PalavraEntrada[TAM_PAL_MAX];
     do{
-        printf("\nDigite o nome do time:");
+        system("cls");
+        printf("\n********************************************************************\n");
+        printf(  "* > Digite o nome do time:                                         *\n");
+        printf(  "********************************************************************\n");
+        gotoxy(28, 3);
         fflush(stdin);
         scanf("%[^\n]", PalavraEntrada);
         fflush(stdin);
+        gotoxy(1, 5);
 
         Palavra* palavra;
         palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra == NULL){
-            printf("Palavra nï¿½o encontrada\n");
+            printf("\n > Palavra não encontrada!\n");
         }
         else{
-            printf("Palavra:%s\n", palavra->name);
-            printf("Descriï¿½ï¿½o:%s\n", palavra->descricao);
-            printf("Remover time? Sim[0] Nï¿½o[1]\n->");
+            printf("\n********************************************************************\n");
+            printf(  "* >                                                                *\n");
+            printf(  "*****************************DESCRIÇÃO******************************\n");
+            gotoxy(5, 7);
+            printf("Palavra: %s\n", palavra->nome);
+            gotoxy(1, 9);
+            printf("%s\n\n", palavra->descricao);
+            printf("Remover time? Sim[0] Não[1]\n->");
             scanf("%d", &a);
             if(a==0){
                 remove_Palavra(palavra);
             }
         }
 
-        printf("Remover mais um time? Sim[0] Nï¿½o[1]\n->");
+        printf("Remover mais um time? Sim[0] Não[1]\n->");
         scanf("%d", &a);
 
     }while(a<1);
@@ -218,45 +264,202 @@ void excluirPal(){
 void editarPal(){
 
 	int a = 0;
-	char PalavraEntrada[TAM_PAL_MAX];
+	char PalavraEntrada[TAM_PAL_MAX], tempDescricaoPalavra[TAM_DES_MAX];
     do{
-        printf("\nDigite o nome do time:");
+        system("cls");
+        printf("\n********************************************************************\n");
+        printf(  "* > Digite o nome do time:                                         *\n");
+        printf(  "********************************************************************\n");
+        gotoxy(28, 3);
         fflush(stdin);
         scanf("%[^\n]", PalavraEntrada);
         fflush(stdin);
 
-        Palavra* palavra=retorna_Palavra_bynome(PalavraEntrada);
+        Palavra* palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra==NULL){
-            printf("Palavra nï¿½o encontrada:");
+            printf("\n\n > Palavra não encontrada!\n");
         }else{
-            printf("Palavra:%s\n", palavra->name);
-            printf("Descriï¿½ï¿½o:%s\n", palavra->descricao);
-            printf("O que deseja editar: Nome[1]/tDescriï¿½ï¿½o[2]");
+            printf("\n********************************************************************\n");
+            printf(  "* >                                                                *\n");
+            printf(  "*****************************DESCRIÇÃO******************************\n");
+            gotoxy(5, 6);
+            printf("Palavra: %s\n", palavra->nome);
+            gotoxy(1, 8);
+            printf("%s\n\n", palavra->descricao);
+            printf("O que deseja editar: Nome[1]\tDescrição[2]\n:");
             scanf("%d", &a);
             switch(a){
                 case 1:
                     printf("Digite o nome:");
                     fflush(stdin);
-                    scanf("%[^\n]", palavra->name);
+                    scanf("%[^\n]", PalavraEntrada);
                     fflush(stdin);
+
+                    PalavraEntrada[0] = toupper(PalavraEntrada[0]);
+
+                    if (palavra->nome[0] != PalavraEntrada[0])
+                    {
+                        strcpy(tempDescricaoPalavra, palavra->descricao);
+                        remove_Palavra(palavra);
+                        insert_Palavra(PalavraEntrada, tempDescricaoPalavra);
+                    }
+
+
                     break;
                 case 2:
-                    printf("Digite a descriï¿½ï¿½o:");
+                    printf("Digite a descrição:");
                     fflush(stdin);
                     scanf("%[^\n]", palavra->descricao);
                     fflush(stdin);
                     break;
                 }
         }
-        printf("Editar mais um time? Sim[0] Nï¿½o[1]\n->");
+        printf("Editar mais um time? Sim[0] Não[1]\n->");
         scanf("%d", &a);
 
     }while(a<1);
 }
 
+void ordenarPal()
+{
+    ordenar_letras();
+
+    letraAux = letraInicio.next;
+    while(letraAux)
+    {
+        ordenar_palavras(letraAux->letra);
+
+        letraAux = letraAux->next;
+    }
+
+    printf("\n > As palavras e letras foram ordenadas!\n");
+}
+
 void pesquisaRelevancia()
 {
+    system("cls");
 
+    char substring[TAM_PAL_MAX];
+    char ordena_palavra = 1;
+    Palavra_ptr* pAux_ptr = PPalInicio.next;
+    Palavra_ptr* pAnt_ptr = &PPalInicio;
+
+    while(pAux_ptr)
+    {
+        pAnt_ptr = pAux_ptr;
+        pAux_ptr = pAux_ptr->next;
+        free(pAnt_ptr);
+    }
+
+    PPalInicio.next = NULL;
+    pAux_ptr = PPalInicio.next;
+    pAnt_ptr = &PPalInicio;
+
+    printf("\n********************************************************************\n");
+    printf(  "* > Digite a palavra a ser pesquisada (Não use espaços)            *\n");
+    printf(  "* > :                                                              *\n");
+    printf(  "********************************************************************\n");
+
+    gotoxy(7, 4);
+    fflush(stdin);
+    scanf("%[^\n]", substring);
+    fflush(stdin);
+
+    letraAux = letraInicio.next;
+    while (letraAux)
+    {
+        letraAux->palavraAux = letraAux->PalavraInicio.next;
+        while(letraAux->palavraAux)
+        {
+            pAnt_ptr->next = (Palavra_ptr*) malloc(sizeof(Palavra_ptr));
+            pAux_ptr = pAnt_ptr->next;
+            pAux_ptr->palavra = letraAux->palavraAux;
+            pAux_ptr->relevancia = num_substring_em_string(pAux_ptr->palavra->descricao, substring);
+
+            if (pAux_ptr->relevancia < 1)
+            {
+                free(pAux_ptr);
+                letraAux->palavraAux = letraAux->palavraAux->next;
+                continue;
+            }
+
+            pAux_ptr = pAux_ptr->next;
+            pAnt_ptr = pAnt_ptr->next;
+
+            letraAux->palavraAux = letraAux->palavraAux->next;
+        }
+
+        letraAux = letraAux->next;
+    }
+
+    pAnt_ptr->next = NULL;
+
+    while (ordena_palavra)
+    {
+        pAux_ptr = PPalInicio.next;
+        pAnt_ptr = &PPalInicio;
+        ordena_palavra = 0;
+
+        while (pAux_ptr)
+        {
+            if (!pAux_ptr->next)
+            {
+                break;
+            }
+
+            if (pAux_ptr->relevancia < pAux_ptr->next->relevancia)
+            {
+                pAnt_ptr->next = pAux_ptr->next;
+                pAux_ptr->next = pAux_ptr->next->next;
+                pAnt_ptr = pAnt_ptr->next;
+                pAnt_ptr->next = pAux_ptr;
+            } 
+
+            pAux_ptr = pAux_ptr->next;
+            pAnt_ptr = pAnt_ptr->next;
+        }
+
+        pAux_ptr = PPalInicio.next;
+        while (pAux_ptr)
+        {
+            ordena_palavra = 0;
+
+            if (!pAux_ptr->next)
+            {
+                break;
+            }
+            
+            if (pAux_ptr->relevancia < pAux_ptr->next->relevancia)
+            {
+                ordena_palavra = 1;
+                break;
+            }
+
+            pAux_ptr = pAux_ptr->next;
+        }
+
+    }
+
+    printf(  "******************************RESULTADOS****************************\n");
+
+    pAux_ptr = PPalInicio.next;
+    int i = 0;
+    while (pAux_ptr)
+    {
+        printf("[%d] : %s - %s\n\n", pAux_ptr->relevancia, pAux_ptr->palavra->nome, pAux_ptr->palavra->descricao);
+
+        pAux_ptr = pAux_ptr->next;
+
+        i++;
+    }
+
+    if (i == 0)
+    {
+        printf("\nA busca não obteve resultados!\n");
+        printf("> A busca não funciona com espaços;\n> Verifique a ortografia;\n> A busca não é \"case sensitive\";\n> Não utilize acentos;\n\n");
+    }
+
+    system("pause");
 }
 
 /*===========================================================================================
@@ -268,14 +471,15 @@ CONTROLE DE LISTAS
 Letra* retorna_Letra_bychar(char letra)
 {
     int i = 0;
-	LetraAux = LetraInicio.next;
-	while (LetraAux)
+    letra = toupper(letra);
+	letraAux = letraInicio.next;
+	while (letraAux)
 	{
-		if (letra == LetraAux->letra)
+		if (letra == letraAux->letra)
 		{
-			return LetraAux;
+			return letraAux;
 		}
-		LetraAux = LetraAux->next;
+		letraAux = letraAux->next;
 		i++;
 	}
 
@@ -286,22 +490,24 @@ void listar_dicionario()
 {
     int i = 0;
 
-    Letra* pLetra = LetraInicio.next;
+    Letra* pLetra = letraInicio.next;
 
 	while (pLetra)
 	{
-		printf("%d - %c", i++, pLetra->letra);
+		printf("\n-*%c*-\n", pLetra->letra);
 
 		Palavra* pPalavra = pLetra->PalavraInicio.next;
 		while (pPalavra)
 		{
-			printf(" - %s", pPalavra->name);
+			printf(" > %s - %s\n", pPalavra->nome, pPalavra->descricao);
 			pPalavra = pPalavra->next;
 		}
 		printf("\n");
 
 		pLetra = pLetra->next;
 	}
+
+    system("pause");
 }
 
 void toupper_str(char* str)
@@ -310,6 +516,37 @@ void toupper_str(char* str)
     {
         str[i] = toupper(str[i]);
     }
+}
+
+int strcont( /*1*/const char* string, /*2*/const char* substring)
+{
+    /*
+    Parametros:
+        1: String que pode conter a substring
+        2: Substring a ser testada
+
+    Retorna:
+        int(0): A substring não está contida na string
+        int(1): A substring está contida na string
+    */
+
+    char ustring[TAM_PAL_MAX], usubstring[TAM_PAL_MAX];
+
+    strcpy(ustring, string);
+    strcpy(usubstring, substring);
+
+    toupper_str(ustring);
+    toupper_str(usubstring);
+
+    for (unsigned int i = 0; i < strlen(usubstring); i++)
+    {
+        if (ustring[i] != usubstring[i])
+        {
+            return 0;
+        }
+    }
+
+    return 1;
 }
 
 int compara_palavras( /*1*/Palavra* palAux, /*2*/Palavra* pPalavra)
@@ -324,12 +561,12 @@ int compara_palavras( /*1*/Palavra* palAux, /*2*/Palavra* pPalavra)
         int(1): Palavras estao na ordem errada
     */
 
-    int tam = strcmp(palAux->name, pPalavra->name);
+    int tam = strcmp(palAux->nome, pPalavra->nome);
 
     char str1[TAM_PAL_MAX], str2[TAM_PAL_MAX];
 
-    strcpy(str1, palAux->name);
-    strcpy(str2, pPalavra->name);
+    strcpy(str1, palAux->nome);
+    strcpy(str2, pPalavra->nome);
 
     toupper_str(str1);
     toupper_str(str2);
@@ -384,16 +621,16 @@ void ordenar_palavras(char letra)
         return;
     }
 
-	pLetra->PalavraAux = pLetra->PalavraInicio.next;
-	pLetra->PalavraAnt = &pLetra->PalavraInicio;
+	pLetra->palavraAux = pLetra->PalavraInicio.next;
+	pLetra->palavraAnt = &pLetra->PalavraInicio;
 
-	while(pLetra->PalavraAux)
+	while(pLetra->palavraAux)
 	{
 		Palavra* pPalavra = pLetra->PalavraInicio.next;
 		char menor_palavra = 1;
 		while (pPalavra)
 		{
-			menor_palavra = compara_palavras( pLetra->PalavraAux, pPalavra );
+			menor_palavra = compara_palavras( pLetra->palavraAux, pPalavra );
 
 			if (menor_palavra == 0)
                 break;
@@ -403,14 +640,14 @@ void ordenar_palavras(char letra)
 
 		if (menor_palavra)
 		{
-			pLetra->PalavraAnt->next = pLetra->PalavraAux->next;
-			pLetra->PalavraAux->next = pLetra->PalavraInicio.next;
-			pLetra->PalavraInicio.next = pLetra->PalavraAux;
+			pLetra->palavraAnt->next = pLetra->palavraAux->next;
+			pLetra->palavraAux->next = pLetra->PalavraInicio.next;
+			pLetra->PalavraInicio.next = pLetra->palavraAux;
 			break;
 		}
 
-		pLetra->PalavraAux = pLetra->PalavraAux->next;
-		pLetra->PalavraAnt = pLetra->PalavraAnt->next;
+		pLetra->palavraAux = pLetra->palavraAux->next;
+		pLetra->palavraAnt = pLetra->palavraAnt->next;
 	}
 
 	/*printf("\n===========DICIONARIO 1=============\n\n");
@@ -421,51 +658,45 @@ void ordenar_palavras(char letra)
 
 	while (ordena_palavra != 0)
 	{
-		pLetra->PalavraAux = pLetra->PalavraInicio.next;
-        pLetra->PalavraAnt = &pLetra->PalavraInicio;
+		pLetra->palavraAux = pLetra->PalavraInicio.next;
+        pLetra->palavraAnt = &pLetra->PalavraInicio;
 
 		int i = 0;
-		while(pLetra->PalavraAux)
+		while(pLetra->palavraAux)
 		{
-			if (!pLetra->PalavraAux->next)
+			if (!pLetra->palavraAux->next)
 				break;
 
-			if ( !compara_palavras( pLetra->PalavraAux, pLetra->PalavraAux->next))
+			if ( !compara_palavras( pLetra->palavraAux, pLetra->palavraAux->next))
 			{
-			    pLetra->PalavraAnt->next = pLetra->PalavraAux->next;
-                pLetra->PalavraAux->next = pLetra->PalavraAux->next->next;
-                pLetra->PalavraAnt = pLetra->PalavraAnt->next;
-                pLetra->PalavraAnt->next = pLetra->PalavraAux;
+			    pLetra->palavraAnt->next = pLetra->palavraAux->next;
+                pLetra->palavraAux->next = pLetra->palavraAux->next->next;
+                pLetra->palavraAnt = pLetra->palavraAnt->next;
+                pLetra->palavraAnt->next = pLetra->palavraAux;
             }
 
-			pLetra->PalavraAux = pLetra->PalavraAux->next;
-			pLetra->PalavraAnt = pLetra->PalavraAnt->next;
+			pLetra->palavraAux = pLetra->palavraAux->next;
+			pLetra->palavraAnt = pLetra->palavraAnt->next;
 			i++;
 		}
 
-		/*printf("\n===========DICIONARIO 2=============\n\n");
-
-        listar_dicionario();
-
-        printf("\n==================================\n\n");*/
-
-        pLetra->PalavraAux = pLetra->PalavraInicio.next;
-		while(pLetra->PalavraAux)
+        pLetra->palavraAux = pLetra->PalavraInicio.next;
+		while(pLetra->palavraAux)
 		{
 			ordena_palavra = 0;
 
-			if (!pLetra->PalavraAux->next)
+			if (!pLetra->palavraAux->next)
 			{
 				break;
 			}
 
-			if ( !compara_palavras( pLetra->PalavraAux, pLetra->PalavraAux->next) )
+			if ( !compara_palavras( pLetra->palavraAux, pLetra->palavraAux->next) )
 			{
 				ordena_palavra++;
 				break;
 			}
 
-			pLetra->PalavraAux = pLetra->PalavraAux->next;
+			pLetra->palavraAux = pLetra->palavraAux->next;
 		}
 	}
 
@@ -480,15 +711,15 @@ void ordenar_letras()
 {
 	char ordena_Letra = 1;
 
-	LetraAux = LetraInicio.next;
+	letraAux = letraInicio.next;
 
-	while(LetraAux)
+	while(letraAux)
 	{
-		Letra *p = LetraInicio.next;
+		Letra *p = letraInicio.next;
 		char menor_letra = 1;
 		while (p)
 		{
-			if (LetraAux->letra > p->letra)
+			if (letraAux->letra > p->letra)
 			{
 				menor_letra = 0;
 			}
@@ -499,21 +730,21 @@ void ordenar_letras()
 		if (menor_letra)
 		{
 			Letra* temp = NULL;
-			if (LetraAux->next)
-				temp = LetraAux->next;
-			LetraAux->prev->next = temp;
-			LetraAux->next = LetraInicio.next;
-			LetraAux->prev = &LetraInicio;
-			LetraInicio.next->prev = LetraAux;
-			LetraInicio.next = LetraAux;
+			if (letraAux->next)
+				temp = letraAux->next;
+			letraAux->prev->next = temp;
+			letraAux->next = letraInicio.next;
+			letraAux->prev = &letraInicio;
+			letraInicio.next->prev = letraAux;
+			letraInicio.next = letraAux;
 
 			break;
 		}
 
-		LetraAux = LetraAux->next;
+		letraAux = letraAux->next;
 	}
 
-	for( Letra* temp = LetraInicio.next; temp; temp = temp->next )
+	for( Letra* temp = letraInicio.next; temp; temp = temp->next )
 	{
 		if (temp->next)
 			temp->next->prev = temp;
@@ -521,48 +752,48 @@ void ordenar_letras()
 
 	while (ordena_Letra != 0)
 	{
-		LetraAux = LetraInicio.next;
+		letraAux = letraInicio.next;
 		int i = 0;
-		while(LetraAux)
+		while(letraAux)
 		{
-			if (!LetraAux->next)
+			if (!letraAux->next)
 				break;
 
-			if (LetraAux->letra > LetraAux->next->letra)
+			if (letraAux->letra > letraAux->next->letra)
 			{
-				Letra* temp = LetraAux->next->next;
-				LetraAux->next->prev = LetraAux->prev;
-				if (LetraAux->next->next)
-					LetraAux->next->next->prev = LetraAux;
-				LetraAux->prev = LetraAux->next;
-				LetraAux->next = LetraAux->prev->next;
-				LetraAux->prev->next = LetraAux;
-				LetraAux->prev->prev->next = LetraAux->prev;
+				Letra* temp = letraAux->next->next;
+				letraAux->next->prev = letraAux->prev;
+				if (letraAux->next->next)
+					letraAux->next->next->prev = letraAux;
+				letraAux->prev = letraAux->next;
+				letraAux->next = letraAux->prev->next;
+				letraAux->prev->next = letraAux;
+				letraAux->prev->prev->next = letraAux->prev;
 
-				LetraAux->next = temp;
+				letraAux->next = temp;
 			}
 
-			LetraAux = LetraAux->next;
+			letraAux = letraAux->next;
 			i++;
 		}
 
-		LetraAux = LetraInicio.next;
-		while(LetraAux)
+		letraAux = letraInicio.next;
+		while(letraAux)
 		{
 			ordena_Letra = 0;
 
-			if (!LetraAux->next)
+			if (!letraAux->next)
 			{
 				break;
 			}
 
-			if (LetraAux->letra > LetraAux->next->letra)
+			if (letraAux->letra > letraAux->next->letra)
 			{
 				ordena_Letra++;
 				break;
 			}
 
-			LetraAux = LetraAux->next;
+			letraAux = letraAux->next;
 		}
 	}
 }
@@ -589,27 +820,27 @@ Letra* new_Letra(const char letra)
 	p->letra = letra;
 
 	// 3 - Lista Palavra
-	p->PalavraAux = &p->PalavraInicio;
-	p->PalavraAux->next = NULL;
+	p->palavraAux = &p->PalavraInicio;
+	p->palavraAux->next = NULL;
 
 	return p;
 }
 
 Letra* insert_Letra(const char letra)
 {
-	LetraAux->next = new_Letra(letra);
-	LetraAux->next->prev = LetraAux;
-	LetraAux = LetraAux->next;
-	LetraAux->next = NULL;
-	return LetraAux;
+	letraAux->next = new_Letra(letra);
+	letraAux->next->prev = letraAux;
+	letraAux = letraAux->next;
+	letraAux->next = NULL;
+	return letraAux;
 }
 
 Letra* retorna_Letra_Palavra(Palavra* Palavra)
 {
-    Letra* p = LetraInicio.next;
+    Letra* p = letraInicio.next;
 	while (p)
 	{
-        if (Palavra->name[0] == p->letra)
+        if (Palavra->nome[0] == p->letra)
         {
             return p;
         }
@@ -620,18 +851,29 @@ Letra* retorna_Letra_Palavra(Palavra* Palavra)
 
 Palavra* retorna_Palavra_bynome(const char nome[])
 {
-	LetraAux = retorna_Letra_bychar(nome[0]);
-	if(LetraAux)
+    char unome[TAM_PAL_MAX], upalavra[TAM_PAL_MAX]; 
+
+    memset(unome, 0, sizeof(unome));
+    memset(upalavra, 0, sizeof(upalavra));
+
+    strcpy(unome, nome);
+
+    toupper_str(unome);
+
+	letraAux = retorna_Letra_bychar(unome[0]);
+	if(letraAux)
 	{
 		int i = 0;
-		LetraAux->PalavraAux = LetraAux->PalavraInicio.next;
-		while (LetraAux->PalavraAux)
+		letraAux->palavraAux = letraAux->PalavraInicio.next;
+		while (letraAux->palavraAux)
 		{
-			if (strcmp( nome, LetraAux->PalavraAux->name ) == 0)
+            strcpy(upalavra, letraAux->palavraAux->nome);
+            toupper_str(upalavra);
+			if (strcmp( unome, upalavra ) == 0)
 			{
-				return LetraAux->PalavraAux;
+				return letraAux->palavraAux;
 			}
-			LetraAux->PalavraAux = LetraAux->PalavraAux->next;
+			letraAux->palavraAux = letraAux->palavraAux->next;
 			i++;
 		}
 	}
@@ -650,23 +892,23 @@ void remove_Palavra(Palavra* Palavra)
 
     if (!p)
     {
-        printf("ERRO - Essa letra <\"%c\"> nao existe no dicionario!\n", Palavra->name[0]);
+        printf("ERRO - Essa letra <\"%c\"> nao existe no dicionario!\n", Palavra->nome[0]);
         return;
     }
 
-    p->PalavraAux = p->PalavraInicio.next;
-    p->PalavraAnt = &p->PalavraInicio;
-    while (p->PalavraAux)
+    p->palavraAux = p->PalavraInicio.next;
+    p->palavraAnt = &p->PalavraInicio;
+    while (p->palavraAux)
     {
-        if (p->PalavraAux == Palavra)
+        if (p->palavraAux == Palavra)
         {
-            p->PalavraAnt->next = p->PalavraAux->next;
+            p->palavraAnt->next = p->palavraAux->next;
             free(Palavra);
 			break;
         }
 
-        p->PalavraAux = p->PalavraAux->next;
-        p->PalavraAnt = p->PalavraAnt->next;
+        p->palavraAux = p->palavraAux->next;
+        p->palavraAnt = p->palavraAnt->next;
     }
 
 	if (p->PalavraInicio.next == NULL)
@@ -675,38 +917,34 @@ void remove_Palavra(Palavra* Palavra)
     }
 }
 
-Palavra* new_Palavra(const char name[], const char descricao[])
+Palavra* new_Palavra(const char nome[], const char descricao[])
 {
 	Palavra* c = (Palavra*) malloc(sizeof(Palavra));
-	strcpy(c->name, name);
+	strcpy(c->nome, nome);
 	strcpy(c->descricao, descricao);
 	return c;
 }
 
-Palavra* insert_Palavra(const char name[], const char descricao[])
+Palavra* insert_Palavra(const char nome[], const char descricao[])
 {
-    Palavra* Palavra = new_Palavra(name, descricao);
+    Palavra* palavra = new_Palavra(nome, descricao);
 
-    if (LetraAux == NULL)
+    letraAux = &letraInicio;
+    while(letraAux->next)
     {
-        LetraAux = &LetraInicio;
-        while(LetraAux->next)
-        {
-            LetraAux = LetraAux->next;
-        }
+        letraAux = letraAux->next;
     }
 
     Letra* p = NULL;
-    if (!(p = retorna_Letra_Palavra(Palavra)))
+    if (!(p = retorna_Letra_Palavra(palavra)))
     {
-        p = insert_Letra(toupper(name[0]));
+        p = insert_Letra(toupper(nome[0]));
     }
 
-	p->PalavraAux->next = Palavra;
-    p->PalavraAux = p->PalavraAux->next;
-    p->PalavraAux->next = NULL;
-    //printf("Inseriu %s em %c!\n", p->PalavraAux->name, p->letra);
-    return p->PalavraAux;
+	p->palavraAux->next = palavra;
+    p->palavraAux = p->palavraAux->next;
+    p->palavraAux->next = NULL;
+    return p->palavraAux;
 }
 
 int num_substring_em_string(const char string[], const char substring[])
@@ -745,15 +983,14 @@ int num_substring_em_string(const char string[], const char substring[])
         {
             ii = 0;
 
-            printf("Palavra: %s", pal_str);
-            if (strcmp(pal_str, up_substr) == 0)
+            //printf("Palavra: %s", pal_str);
+            if (strcont(pal_str, up_substr))
             {
                 num_substr++;
-                printf(" @");
+                //printf(" @");
             }
 
-            printf("\n");
-
+            //printf("\n");
             memset(pal_str, 0, sizeof(pal_str));
         }
 
@@ -764,43 +1001,54 @@ int num_substring_em_string(const char string[], const char substring[])
     {
         ii = 0;
 
-        printf("Palavra: %s", pal_str);
-        if (strcmp(pal_str, up_substr) == 0)
+        //printf("Palavra: %s", pal_str);
+        if (strcont(pal_str, up_substr))
         {
             num_substr++;
-            printf(" @");
+            //printf(" @");
         }
 
-        printf("\n");
+        //printf("\n");
 
         memset(pal_str, 0, sizeof(pal_str));
     }
 
-    system("pause");
-
     return num_substr;
+}
+
+void carregar_arquivos()
+{
+    char linha[300];
+    FILE* arquivo;
+
+    char letra;
+    char nomePalavra[TAM_PAL_MAX];
+    char descricaoPalavra[TAM_DES_MAX];
+
+    while (!feof(arquivo))
+    {
+        fscanf(arquivo, "%c {%s: %s.}\n", letra, nomePalavra, descricaoPalavra);
+        insert_Palavra(nomePalavra, descricaoPalavra);
+    }
 }
 
 void salvar_lista_arquivos()
 {
-
     pont_arq = fopen("lista_arquivos.txt", "w+");
 
     if(pont_arq){
 
-        Letra* pLetra = LetraInicio.next;
-
         ordenar_letras();
+        Letra* pLetra = letraInicio.next;
 
         while (pLetra)
         {
-
             ordenar_palavras(pLetra->letra);
 
             Palavra* pPalavra = pLetra->PalavraInicio.next;
             while (pPalavra)
             {
-                fprintf(pont_arq, "%c{Nome:\"%s\",DescriÃ§Ã£o:%s.}\n", pLetra->letra, pPalavra->name, pPalavra->descricao);
+                fprintf(pont_arq, "%c{Nome:\"%s\",Descrição:%s}\n", pLetra->letra, pPalavra->nome, pPalavra->descricao);
                 pPalavra = pPalavra->next;
             }
             printf("\n");
@@ -809,29 +1057,24 @@ void salvar_lista_arquivos()
         }
     }
     else{
-        printf("\nERRO! NÃ£o foi possivel salvar.");
+        printf("\nERRO! Não foi possivel salvar.");
     }
 
     fclose(pont_arq);
-
 }
 
-void carregar_lista_na_RAM(){
-
-    pont_arq = fopen("lista_arquivos.txt", "r+");
+void carregar_lista_na_RAM()
+{
+    pont_arq = fopen("lista_arquivos.txt", "r");
 
     char letra;
     char nome[81], descricao[512];
 
     do{
-
-        fscanf(pont_arq, "%c{Nome:\"%[^\"]\",DescriÃ§Ã£o:%[^.]}", &letra, nome, descricao);
-        insert_Palavra(nome, descricao);
+        fscanf(pont_arq, "%c{Nome:\"%[^\"]\",Descrição:%[^}]}\n", &letra, nome, descricao);
+        Palavra* p = insert_Palavra(nome, descricao);
 
     }while(!feof(pont_arq));
 
-    printf("\n %c, %s, %s", letra, nome, descricao);
     fclose(pont_arq);
 }
-
-
