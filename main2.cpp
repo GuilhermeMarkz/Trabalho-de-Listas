@@ -89,7 +89,7 @@ int main(){
     int a = 0;
     char op;
 
-    /*
+    
     //Palavra Teste
     insert_Palavra( "Flamengo", "O Clube de Regatas do Flamengo, mais conhecido simplesmente como Flamengo,"
     " e popularmente pelos apelidos de Fla, Mengo e Mengão, é uma agremiação poliesportiva brasileira com sede na cidade do Rio de Janeiro,"
@@ -118,7 +118,7 @@ int main(){
 
     insert_Palavra ("Goias Esporte Clube", "Goiás Esporte Clube é uma agremiação esportiva brasileira, sediada na cidade de Goiânia, no estado de Goiás."
     " Tem como cores o verde e o branco e atualmente manda seus jogos no Estádio Hailé Pinheiro, e eventualmente jogando nos estádios Serra Dourada e Olímpico.");
-    */
+    
 
     do{
         system("cls");
@@ -273,9 +273,9 @@ void excluirPal(){
             printf("\n********************************************************************\n");
             printf(  "* >                                                                *\n");
             printf(  "*****************************DESCRIÇÃO******************************\n");
-            gotoxy(5, 6);
+            gotoxy(5, 7);
             printf("Palavra: %s\n", palavra->nome);
-            gotoxy(1, 8);
+            gotoxy(1, 9);
             printf("%s\n\n", palavra->descricao);
             printf("Remover time? Sim[0] Não[1]\n->");
             scanf("%d", &a);
@@ -304,9 +304,9 @@ void editarPal(){
         scanf("%[^\n]", PalavraEntrada);
         fflush(stdin);
 
-        Palavra* palavra=retorna_Palavra_bynome(PalavraEntrada);
+        Palavra* palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra==NULL){
-            printf("Palavra não encontrada:");
+            printf("\n\nPalavra não encontrada:\n");
         }else{
             printf("\n********************************************************************\n");
             printf(  "* >                                                                *\n");
@@ -956,24 +956,21 @@ Palavra* new_Palavra(const char nome[], const char descricao[])
 
 Palavra* insert_Palavra(const char nome[], const char descricao[])
 {
-    Palavra* Palavra = new_Palavra(nome, descricao);
+    Palavra* palavra = new_Palavra(nome, descricao);
 
-    if (letraAux == NULL)
+    letraAux = &letraInicio;
+    while(letraAux->next)
     {
-        letraAux = &letraInicio;
-        while(letraAux->next)
-        {
-            letraAux = letraAux->next;
-        }
+        letraAux = letraAux->next;
     }
 
     Letra* p = NULL;
-    if (!(p = retorna_Letra_Palavra(Palavra)))
+    if (!(p = retorna_Letra_Palavra(palavra)))
     {
         p = insert_Letra(toupper(nome[0]));
     }
 
-	p->palavraAux->next = Palavra;
+	p->palavraAux->next = palavra;
     p->palavraAux = p->palavraAux->next;
     p->palavraAux->next = NULL;
     //printf("Inseriu %s em %c!\n", p->palavraAux->nome, p->letra);
@@ -1067,7 +1064,7 @@ void salvar_lista_arquivos()
             Palavra* pPalavra = pLetra->PalavraInicio.next;
             while (pPalavra)
             {
-                fprintf(pont_arq, "%c {%s: %s.}\n", pLetra->letra, pPalavra->nome, pPalavra->descricao);
+                fprintf(pont_arq, "%c {%s: %s}\n", pLetra->letra, pPalavra->nome, pPalavra->descricao);
                 pPalavra = pPalavra->next;
             }
             //printf("\n");
