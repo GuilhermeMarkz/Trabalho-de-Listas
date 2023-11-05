@@ -38,6 +38,7 @@ Letra LetraInicio, *LetraAux;
 
 //Funções de Arquivos
 void salvar_lista_arquivos();
+void carregar_lista_na_RAM();
 
 //Fun��es de controle da lista de Letras
 Letra* new_Letra(const char letra);
@@ -69,21 +70,12 @@ void ordenarPal();
 void pesquisaRelevancia();
 
 int main(){
+
     setlocale(LC_ALL,"");
     int a = 0;
     char op;
 
-    //Palavra Teste
-    insert_Palavra( "Flamengo", "O Clube de Regatas do Flamengo, mais conhecido simplesmente como Flamengo,"
-    " e popularmente pelos apelidos de Fla, Mengo e Meng�o, � uma agremia��o poliesportiva brasileira com sede na cidade do Rio de Janeiro,"
-    " capital do estado hom�nimo." );
-
-    //Palavra Teste
-    insert_Palavra( "Botafogo", "O Botafogo de Futebol e Regatas, ou simplesmente Botafogo, � uma agremia��o poliesportiva brasileira,"
-    " com sede no bairro hom�nimo ao clube, na cidade do Rio de Janeiro. Nascido da fus�o do Club de Regatas Botafogo com o Botafogo Football Club,"
-    " � um dos principais clubes do Brasil.");
-
-
+    carregar_lista_na_RAM();
 
     do{
         system("cls");
@@ -792,7 +784,7 @@ int num_substring_em_string(const char string[], const char substring[])
 void salvar_lista_arquivos()
 {
 
-    pont_arq = fopen("lista_atquivos.txt", "w+");
+    pont_arq = fopen("lista_arquivos.txt", "w+");
 
     if(pont_arq){
 
@@ -808,7 +800,7 @@ void salvar_lista_arquivos()
             Palavra* pPalavra = pLetra->PalavraInicio.next;
             while (pPalavra)
             {
-                fprintf(pont_arq, "%c {%s: %s.}\n", pLetra->letra, pPalavra->name, pPalavra->descricao);
+                fprintf(pont_arq, "%c{Nome:\"%s\",Descrição:%s.}\n", pLetra->letra, pPalavra->name, pPalavra->descricao);
                 pPalavra = pPalavra->next;
             }
             printf("\n");
@@ -823,3 +815,23 @@ void salvar_lista_arquivos()
     fclose(pont_arq);
 
 }
+
+void carregar_lista_na_RAM(){
+
+    pont_arq = fopen("lista_arquivos.txt", "r+");
+
+    char letra;
+    char nome[81], descricao[512];
+
+    do{
+
+        fscanf(pont_arq, "%c{Nome:\"%[^\"]\",Descrição:%[^.]}", &letra, nome, descricao);
+        insert_Palavra(nome, descricao);
+
+    }while(!feof(pont_arq));
+
+    printf("\n %c, %s, %s", letra, nome, descricao);
+    fclose(pont_arq);
+}
+
+
