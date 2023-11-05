@@ -49,6 +49,7 @@ Letra letraInicio, *letraAux;
 
 //Funções de Arquivos
 void salvar_lista_arquivos(); // Salva as alterações do sistema na memória secundária
+void carregar_lista_na_RAM();
 
 //Funções de controle da lista de Letras
 Letra* new_Letra(const char letra);
@@ -89,41 +90,10 @@ int main(){
     int a = 0;
     char op;
 
-    
-    //Palavra Teste
-    insert_Palavra( "Flamengo", "O Clube de Regatas do Flamengo, mais conhecido simplesmente como Flamengo,"
-    " e popularmente pelos apelidos de Fla, Mengo e Mengão, é uma agremiação poliesportiva brasileira com sede na cidade do Rio de Janeiro,"
-    " capital do estado homônimo." );
-
-    //Palavra Teste
-    insert_Palavra( "Botafogo", "O Botafogo de Futebol e Regatas, ou simplesmente Botafogo, é uma agremiação poliesportiva brasileira,"
-    " com sede no bairro homônimo ao clube, na cidade do Rio de Janeiro. Nascido da fusão do Club de Regatas Botafogo com o Botafogo Football Club,"
-    " é um dos principais clubes do Brasil.");
-
-    insert_Palavra( "Palmeiras", "Sociedade Esportiva Palmeiras, conhecida popularmente como Palmeiras, é um clube poliesportivo brasileiro da cidade de São Paulo,"
-    " capital do estado homônimo. Foi fundado em 26 de agosto de 1914 e suas cores, presentes no escudo e bandeira oficial, são o verde e branco.");
-
-    insert_Palavra ( "Fluminense", "O Fluminense Football Club, comumente referido simplesmente como Fluminense ou por seus apelidos Flu, Fluzão e Nense,"
-    " é uma agremiação poliesportiva e cultural sediada no bairro de Laranjeiras, Zona Sul da cidade do Rio de Janeiro, no Brasil, fundada em 21 de julho de 1902.");
-
-    insert_Palavra ( "Boca Juniors", "O Club Atlético Boca Juniors, ou simplesmente Boca Juniors, é um clube esportivo argentino com sede no bairro La Boca,"
-    " em Buenos Aires. Foi fundado no dia 3 de abril de 1905 por seis adolescentes vizinhos que eram filhos de italianos.");
-
-    insert_Palavra ( "Corinthians", "O Sport Club Corinthians Paulista, comumente referido como Corinthians, é um clube poliesportivo brasileiro"
-    " da cidade de São Paulo, capital do estado de São Paulo. Foi fundado como uma equipe de futebol no dia 1 de setembro de 1910 por um"
-    " grupo de operários do bairro Bom Retiro.");
-
-    insert_Palavra ("Atletico Mineiro", "O Clube Atlético Mineiro, mais conhecido como Atlético Mineiro, Atlético ou pelo apelido Galo,"
-    " e cujo acrônimo é CAM, é um clube de futebol profissional brasileiro sediado na cidade de Belo Horizonte, Minas Gerais.");
-
-    insert_Palavra ("Goias Esporte Clube", "Goiás Esporte Clube é uma agremiação esportiva brasileira, sediada na cidade de Goiânia, no estado de Goiás."
-    " Tem como cores o verde e o branco e atualmente manda seus jogos no Estádio Hailé Pinheiro, e eventualmente jogando nos estádios Serra Dourada e Olímpico.");
-    
+    carregar_lista_na_RAM();
 
     do{
         system("cls");
-
-        Palavra* palavra = retorna_Palavra_bynome("Botafogo");
 
         printf("Dicionário de Times de Futebol");
         printf("\n[1]Inserir palavra\n[2]Editar palavra\n[3]Excluir palavra\n[4]Pesquisar palavra\n[5]Ordenar dicionário\n[6]Lista de palavras\n"
@@ -973,7 +943,6 @@ Palavra* insert_Palavra(const char nome[], const char descricao[])
 	p->palavraAux->next = palavra;
     p->palavraAux = p->palavraAux->next;
     p->palavraAux->next = NULL;
-    //printf("Inseriu %s em %c!\n", p->palavraAux->nome, p->letra);
     return p->palavraAux;
 }
 
@@ -1046,28 +1015,42 @@ int num_substring_em_string(const char string[], const char substring[])
     return num_substr;
 }
 
+void carregar_arquivos()
+{
+    char linha[300];
+    FILE* arquivo;
+
+    char letra;
+    char nomePalavra[TAM_PAL_MAX];
+    char descricaoPalavra[TAM_DES_MAX];
+
+    while (!feof(arquivo))
+    {
+        fscanf(arquivo, "%c {%s: %s.}\n", letra, nomePalavra, descricaoPalavra);
+        insert_Palavra(nomePalavra, descricaoPalavra);
+    }
+}
+
 void salvar_lista_arquivos()
 {
-    pont_arq = fopen("lista_atquivos.txt", "w+");
+    pont_arq = fopen("lista_arquivos.txt", "w+");
 
     if(pont_arq){
 
-        Letra* pLetra = letraInicio.next;
-
         ordenar_letras();
+        Letra* pLetra = letraInicio.next;
 
         while (pLetra)
         {
-
             ordenar_palavras(pLetra->letra);
 
             Palavra* pPalavra = pLetra->PalavraInicio.next;
             while (pPalavra)
             {
-                fprintf(pont_arq, "%c {%s: %s}\n", pLetra->letra, pPalavra->nome, pPalavra->descricao);
+                fprintf(pont_arq, "%c{Nome:\"%s\",Descrição:%s}\n", pLetra->letra, pPalavra->nome, pPalavra->descricao);
                 pPalavra = pPalavra->next;
             }
-            //printf("\n");
+            printf("\n");
 
             pLetra = pLetra->next;
         }
@@ -1077,5 +1060,20 @@ void salvar_lista_arquivos()
     }
 
     fclose(pont_arq);
+}
 
+void carregar_lista_na_RAM()
+{
+    pont_arq = fopen("lista_arquivos.txt", "r");
+
+    char letra;
+    char nome[81], descricao[512];
+
+    do{
+        fscanf(pont_arq, "%c{Nome:\"%[^\"]\",Descrição:%[^}]}\n", &letra, nome, descricao);
+        Palavra* p = insert_Palavra(nome, descricao);
+
+    }while(!feof(pont_arq));
+
+    fclose(pont_arq);
 }
