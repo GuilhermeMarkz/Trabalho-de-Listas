@@ -158,15 +158,13 @@ void inserirPal(){
 
     char nomePalavra[TAM_PAL_MAX], descPalavra[TAM_DES_MAX];
 
-
     int a=0;
-
 
     do{
     system("cls");
     printf("\n********************************************************************\n");
     printf(  "* > Digite o nome do time:                                         *\n");
-    printf(  "********************************************************************\n");
+    printf(  "********************* OBS: não use acentos! ************************\n");
     gotoxy(28, 3);
     fflush(stdin);
     scanf("%[^\n]", nomePalavra);
@@ -192,18 +190,21 @@ void pesquisarPal(){
 
     char PalavraEntrada[TAM_PAL_MAX];
 
-    system("cls");
-
     do{
-        printf("\nDigite o nome do time:");
+        system("cls");
+        printf("\n********************************************************************\n");
+        printf(  "* > Digite o nome do time:                                         *\n");
+        printf(  "********************************************************************\n");
+        gotoxy(28, 3);
         fflush(stdin);
         scanf("%[^\n]", PalavraEntrada);
         fflush(stdin);
+        gotoxy(1, 5);
 
         Palavra* palavra;
         palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra == NULL){
-            printf("Palavra não existe\n");
+            printf("\n\n > Palavra não encontrada!\n");
 
         }
         else{
@@ -237,7 +238,7 @@ void excluirPal(){
         Palavra* palavra;
         palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra == NULL){
-            printf(" > Palavra não encontrada!\n");
+            printf("\n > Palavra não encontrada!\n");
         }
         else{
             printf("\n********************************************************************\n");
@@ -276,7 +277,7 @@ void editarPal(){
 
         Palavra* palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra==NULL){
-            printf("\n\nPalavra não encontrada:\n");
+            printf("\n\n > Palavra não encontrada!\n");
         }else{
             printf("\n********************************************************************\n");
             printf(  "* >                                                                *\n");
@@ -455,7 +456,7 @@ void pesquisaRelevancia()
     if (i == 0)
     {
         printf("\nA busca não obteve resultados!\n");
-        printf("> A busca não funciona com espaços;\n> Verifique a ortografia;\n> A busca não é \"case sensitive\";\n\n");
+        printf("> A busca não funciona com espaços;\n> Verifique a ortografia;\n> A busca não é \"case sensitive\";\n> Não utilize acentos;\n\n");
     }
 
     system("pause");
