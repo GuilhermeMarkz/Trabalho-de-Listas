@@ -11,7 +11,7 @@
 Lista de Letras que, por sua vez, possuem uma lista de seus filhos.
 */
 
-#define TAM_DES_MAX 512
+#define TAM_DES_MAX 1024
 #define TAM_PAL_MAX 128
 
 int VariConPalavra = 0;
