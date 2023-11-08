@@ -10,7 +10,7 @@
 Lista de Letras que, por sua vez, possuem uma lista de seus filhos.
 */
 
-#define TAM_DES_MAX 512
+#define TAM_DES_MAX 1024
 #define TAM_PAL_MAX 128
 
 int VariConPalavra = 0;
@@ -27,7 +27,7 @@ struct Palavra_ptr
 {
     short relevancia;
     Palavra *palavra;
-    Palavra_ptr *next; 
+    Palavra_ptr *next;
 };
 
 Palavra_ptr PPalInicio;
@@ -49,6 +49,7 @@ Letra letraInicio, *letraAux;
 
 //Funções de Arquivos
 void salvar_lista_arquivos(); // Salva as alterações do sistema na memória secundária
+void carregar_lista_na_RAM();
 
 //Funções de controle da lista de Letras
 Letra* new_Letra(const char letra);
@@ -60,10 +61,11 @@ void ordenar_letras(); // Ordena a lista de letras por ordem alfabética
 
 //Funções de controle da lista de Palavras
 int num_substring_em_string(const char string[], const char substring[]); // Retorna o número de ocorrências de uma substring dentro de uma string
+int compara_palavras( /*1*/Palavra* palAux, /*2*/Palavra* pPalavra);
 Palavra* new_Palavra(const char nome[], const char descricao[]);
 
 Palavra* retorna_Palavra_bynome(const char nome[]); // Retorna o ponteiro da palavra pela string de seu nome
-Palavra* insert_Palavra(const char nome[], const char descricao[]); // Insere uma nova palavra na lista de uma letra 
+Palavra* insert_Palavra(const char nome[], const char descricao[]); // Insere uma nova palavra na lista de uma letra
 void ordenar_palavras(const char letra);  // Ordena todas as palavras de uma letra
 void remove_Palavra(Palavra* Palavra); // Remove uma palavra da lista
 
@@ -89,73 +91,62 @@ int main(){
     int a = 0;
     char op;
 
-    
-    //Palavra Teste
-    insert_Palavra( "Flamengo", "O Clube de Regatas do Flamengo, mais conhecido simplesmente como Flamengo,"
-    " e popularmente pelos apelidos de Fla, Mengo e Mengão, é uma agremiação poliesportiva brasileira com sede na cidade do Rio de Janeiro,"
-    " capital do estado homônimo." );
-
-    //Palavra Teste
-    insert_Palavra( "Botafogo", "O Botafogo de Futebol e Regatas, ou simplesmente Botafogo, é uma agremiação poliesportiva brasileira,"
-    " com sede no bairro homônimo ao clube, na cidade do Rio de Janeiro. Nascido da fusão do Club de Regatas Botafogo com o Botafogo Football Club,"
-    " é um dos principais clubes do Brasil.");
-
-    insert_Palavra( "Palmeiras", "Sociedade Esportiva Palmeiras, conhecida popularmente como Palmeiras, é um clube poliesportivo brasileiro da cidade de São Paulo,"
-    " capital do estado homônimo. Foi fundado em 26 de agosto de 1914 e suas cores, presentes no escudo e bandeira oficial, são o verde e branco.");
-
-    insert_Palavra ( "Fluminense", "O Fluminense Football Club, comumente referido simplesmente como Fluminense ou por seus apelidos Flu, Fluzão e Nense,"
-    " é uma agremiação poliesportiva e cultural sediada no bairro de Laranjeiras, Zona Sul da cidade do Rio de Janeiro, no Brasil, fundada em 21 de julho de 1902.");
-
-    insert_Palavra ( "Boca Juniors", "O Club Atlético Boca Juniors, ou simplesmente Boca Juniors, é um clube esportivo argentino com sede no bairro La Boca,"
-    " em Buenos Aires. Foi fundado no dia 3 de abril de 1905 por seis adolescentes vizinhos que eram filhos de italianos.");
-
-    insert_Palavra ( "Corinthians", "O Sport Club Corinthians Paulista, comumente referido como Corinthians, é um clube poliesportivo brasileiro"
-    " da cidade de São Paulo, capital do estado de São Paulo. Foi fundado como uma equipe de futebol no dia 1 de setembro de 1910 por um"
-    " grupo de operários do bairro Bom Retiro.");
-
-    insert_Palavra ("Atletico Mineiro", "O Clube Atlético Mineiro, mais conhecido como Atlético Mineiro, Atlético ou pelo apelido Galo,"
-    " e cujo acrônimo é CAM, é um clube de futebol profissional brasileiro sediado na cidade de Belo Horizonte, Minas Gerais.");
-
-    insert_Palavra ("Goias Esporte Clube", "Goiás Esporte Clube é uma agremiação esportiva brasileira, sediada na cidade de Goiânia, no estado de Goiás."
-    " Tem como cores o verde e o branco e atualmente manda seus jogos no Estádio Hailé Pinheiro, e eventualmente jogando nos estádios Serra Dourada e Olímpico.");
-    
+    carregar_lista_na_RAM();
 
     do{
         system("cls");
 
-        Palavra* palavra = retorna_Palavra_bynome("Botafogo");
+        printf("*********************************************\n");
+        printf("*******Dicionário de Times de Futebol********\n");
+        printf("*******==============================********\n");
+        printf("*\n*[1]Inserir palavra\n*[2]Editar palavra\n*[3]Excluir palavra\n*[4]Pesquisar palavra\n*[5]Ordenar dicionário\n*[6]Lista de palavras\n"
+        "*[7]Pesquisa por Relevância\n*[8]Salvar e Sair\n*\n");
+        printf("*******Resp:                         ********\n");
+        printf("*********************************************\n");
 
-        printf("Dicionário de Times de Futebol");
-        printf("\n[1]Inserir palavra\n[2]Editar palavra\n[3]Excluir palavra\n[4]Pesquisar palavra\n[5]Ordenar dicionário\n[6]Lista de palavras\n"
-        "[7]Pesquisa por Relevância\n[8]Salvar e Sair\n:");
+        for (int i = 0; i < 10; i++)
+        {
+            gotoxy(45, 4+i);
+            printf("*");
+        }
+
+        gotoxy(14,14);
+
         scanf("%c", &op);
 
         switch(op){
         case '1':
+            fflush(stdin);
             inserirPal();
             break;
 
         case '2':
+            fflush(stdin);
             editarPal();
             break;
 
         case '3':
+            fflush(stdin);
             excluirPal();
             break;
 
         case '4':
+            fflush(stdin);
             pesquisarPal();
             break;
 
         case '5':
+            fflush(stdin);
             ordenarPal();
             break;
 
         case '6':
+            fflush(stdin);
             listar_dicionario();
             break;
 
         case '7':
+            fflush(stdin);
             pesquisaRelevancia();
             break;
 
@@ -171,10 +162,10 @@ int main(){
                 a = 1;
             }
 
-            
+
             break;
         default:
-            system("cls");
+            fflush(stdin);
             continue;
         }
     }while(a<1);
@@ -188,20 +179,20 @@ void inserirPal(){
 
     char nomePalavra[TAM_PAL_MAX], descPalavra[TAM_DES_MAX];
 
-
     int a=0;
-
 
     do{
     system("cls");
+    printf("\n******************************INSERÇÃO******************************\n");
     printf("\n********************************************************************\n");
     printf(  "* > Digite o nome do time:                                         *\n");
-    printf(  "********************************************************************\n");
-    gotoxy(28, 3);
+    printf(  "********************* OBS: não use acentos! ************************\n");
+    gotoxy(28, 5);
     fflush(stdin);
     scanf("%[^\n]", nomePalavra);
     fflush(stdin);
-    gotoxy(1, 5);
+    if (nomePalavra[0] == '\0') ;
+    gotoxy(1, 7);
     printf("\n > Descreva o time:");
     fflush(stdin);
     scanf("%[^\n]", descPalavra);
@@ -222,18 +213,22 @@ void pesquisarPal(){
 
     char PalavraEntrada[TAM_PAL_MAX];
 
-    system("cls");
-
     do{
-        printf("\nDigite o nome do time:");
+        system("cls");
+        printf("\n*******************************PESQUISA************/****************\n");
+        printf("\n********************************************************************\n");
+        printf(  "* > Digite o nome do time:                                         *\n");
+        printf(  "********************************************************************\n");
+        gotoxy(28, 5);
         fflush(stdin);
         scanf("%[^\n]", PalavraEntrada);
         fflush(stdin);
+        gotoxy(1, 7);
 
         Palavra* palavra;
         palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra == NULL){
-            printf("Palavra não existe\n");
+            printf("\n\n > Palavra não encontrada!\n");
 
         }
         else{
@@ -246,8 +241,6 @@ void pesquisarPal(){
         scanf("%d", &a);
 
     }while(a<1);
-
-    system("pause");
 }
 
 void excluirPal(){
@@ -255,27 +248,28 @@ void excluirPal(){
 	char PalavraEntrada[TAM_PAL_MAX];
     do{
         system("cls");
+        printf("\n***************************EXCLUSÃO*********************************\n");
         printf("\n********************************************************************\n");
         printf(  "* > Digite o nome do time:                                         *\n");
         printf(  "********************************************************************\n");
-        gotoxy(28, 3);
+        gotoxy(28, 5);
         fflush(stdin);
         scanf("%[^\n]", PalavraEntrada);
         fflush(stdin);
-        gotoxy(1, 5);
+        gotoxy(1, 7);
 
         Palavra* palavra;
         palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra == NULL){
-            printf(" > Palavra não encontrada!\n");
+            printf("\n > Palavra não encontrada!\n");
         }
         else{
             printf("\n********************************************************************\n");
             printf(  "* >                                                                *\n");
             printf(  "*****************************DESCRIÇÃO******************************\n");
-            gotoxy(5, 7);
+            gotoxy(5, 9);
             printf("Palavra: %s\n", palavra->nome);
-            gotoxy(1, 9);
+            gotoxy(1, 11);
             printf("%s\n\n", palavra->descricao);
             printf("Remover time? Sim[0] Não[1]\n->");
             scanf("%d", &a);
@@ -296,24 +290,25 @@ void editarPal(){
 	char PalavraEntrada[TAM_PAL_MAX], tempDescricaoPalavra[TAM_DES_MAX];
     do{
         system("cls");
+        printf("\n*****************************EDIÇÃO*********************************\n");
         printf("\n********************************************************************\n");
         printf(  "* > Digite o nome do time:                                         *\n");
         printf(  "********************************************************************\n");
-        gotoxy(28, 3);
+        gotoxy(28, 5);
         fflush(stdin);
         scanf("%[^\n]", PalavraEntrada);
         fflush(stdin);
 
         Palavra* palavra = retorna_Palavra_bynome(PalavraEntrada);
         if(palavra==NULL){
-            printf("\n\nPalavra não encontrada:\n");
+            printf("\n\n > Palavra não encontrada!\n");
         }else{
             printf("\n********************************************************************\n");
             printf(  "* >                                                                *\n");
             printf(  "*****************************DESCRIÇÃO******************************\n");
-            gotoxy(5, 6);
+            gotoxy(5, 8);
             printf("Palavra: %s\n", palavra->nome);
-            gotoxy(1, 8);
+            gotoxy(1, 10);
             printf("%s\n\n", palavra->descricao);
             printf("O que deseja editar: Nome[1]\tDescrição[2]\n:");
             scanf("%d", &a);
@@ -331,6 +326,10 @@ void editarPal(){
                         strcpy(tempDescricaoPalavra, palavra->descricao);
                         remove_Palavra(palavra);
                         insert_Palavra(PalavraEntrada, tempDescricaoPalavra);
+                    }
+                    else
+                    {
+                        strcpy(palavra->nome, PalavraEntrada);
                     }
 
 
@@ -362,6 +361,8 @@ void ordenarPal()
     }
 
     printf("\n > As palavras e letras foram ordenadas!\n");
+
+    system("pause");
 }
 
 void pesquisaRelevancia()
@@ -384,12 +385,13 @@ void pesquisaRelevancia()
     pAux_ptr = PPalInicio.next;
     pAnt_ptr = &PPalInicio;
 
+    printf("\n***********************PESQUISA POR RELEVÂNCIA**********************\n");
     printf("\n********************************************************************\n");
     printf(  "* > Digite a palavra a ser pesquisada (Não use espaços)            *\n");
     printf(  "* > :                                                              *\n");
     printf(  "********************************************************************\n");
 
-    gotoxy(7, 4);
+    gotoxy(7, 6);
     fflush(stdin);
     scanf("%[^\n]", substring);
     fflush(stdin);
@@ -442,7 +444,7 @@ void pesquisaRelevancia()
                 pAux_ptr->next = pAux_ptr->next->next;
                 pAnt_ptr = pAnt_ptr->next;
                 pAnt_ptr->next = pAux_ptr;
-            } 
+            }
 
             pAux_ptr = pAux_ptr->next;
             pAnt_ptr = pAnt_ptr->next;
@@ -457,7 +459,7 @@ void pesquisaRelevancia()
             {
                 break;
             }
-            
+
             if (pAux_ptr->relevancia < pAux_ptr->next->relevancia)
             {
                 ordena_palavra = 1;
@@ -485,7 +487,7 @@ void pesquisaRelevancia()
     if (i == 0)
     {
         printf("\nA busca não obteve resultados!\n");
-        printf("> A busca não funciona com espaços;\n> Verifique a ortografia;\n> A busca não é \"case sensitive\";\n\n");
+        printf("> A busca não funciona com espaços;\n> Verifique a ortografia;\n> A busca não é \"case sensitive\";\n> Não utilize acentos;\n\n");
     }
 
     system("pause");
@@ -517,24 +519,40 @@ Letra* retorna_Letra_bychar(char letra)
 
 void listar_dicionario()
 {
-    int i = 0;
-
     Letra* pLetra = letraInicio.next;
+    system("cls");
+    printf(  "\n***********************ÍNDICE REMISSIVO********************\n");
+    int i = 0;
 
 	while (pLetra)
 	{
-		printf("\n-*%c*-\n", pLetra->letra);
+		printf("*\n* - %c -\n*", pLetra->letra);
+
+		i+=2;
 
 		Palavra* pPalavra = pLetra->PalavraInicio.next;
+		int ii = 0;
 		while (pPalavra)
 		{
-			printf(" > %s - %s\n", pPalavra->nome, pPalavra->descricao);
+			printf(" [%d]...%s\n*", ++ii, pPalavra->nome);
+			i++;
 			pPalavra = pPalavra->next;
 		}
 		printf("\n");
+		i++;
 
 		pLetra = pLetra->next;
 	}
+    printf(  "***********************************************************\n");
+
+    int j;
+    for (j = 0; j < i; j++)
+    {
+            gotoxy(59, 3+j);
+            printf("*");
+    }
+
+    gotoxy(1, 4+j);
 
     system("pause");
 }
@@ -880,7 +898,7 @@ Letra* retorna_Letra_Palavra(Palavra* Palavra)
 
 Palavra* retorna_Palavra_bynome(const char nome[])
 {
-    char unome[TAM_PAL_MAX], upalavra[TAM_PAL_MAX]; 
+    char unome[TAM_PAL_MAX], upalavra[TAM_PAL_MAX];
 
     memset(unome, 0, sizeof(unome));
     memset(upalavra, 0, sizeof(upalavra));
@@ -956,7 +974,8 @@ Palavra* new_Palavra(const char nome[], const char descricao[])
 
 Palavra* insert_Palavra(const char nome[], const char descricao[])
 {
-    Palavra* palavra = new_Palavra(nome, descricao);
+    Palavra* palavra;
+    palavra = new_Palavra(nome, descricao);
 
     letraAux = &letraInicio;
     while(letraAux->next)
@@ -973,7 +992,6 @@ Palavra* insert_Palavra(const char nome[], const char descricao[])
 	p->palavraAux->next = palavra;
     p->palavraAux = p->palavraAux->next;
     p->palavraAux->next = NULL;
-    //printf("Inseriu %s em %c!\n", p->palavraAux->nome, p->letra);
     return p->palavraAux;
 }
 
@@ -1013,14 +1031,11 @@ int num_substring_em_string(const char string[], const char substring[])
         {
             ii = 0;
 
-            //printf("Palavra: %s", pal_str);
             if (strcont(pal_str, up_substr))
             {
                 num_substr++;
-                //printf(" @");
             }
 
-            //printf("\n");
             memset(pal_str, 0, sizeof(pal_str));
         }
 
@@ -1048,26 +1063,24 @@ int num_substring_em_string(const char string[], const char substring[])
 
 void salvar_lista_arquivos()
 {
-    pont_arq = fopen("lista_atquivos.txt", "w+");
+    pont_arq = fopen("lista_arquivos.txt", "w+");
 
     if(pont_arq){
 
-        Letra* pLetra = letraInicio.next;
-
         ordenar_letras();
+        Letra* pLetra = letraInicio.next;
 
         while (pLetra)
         {
-
             ordenar_palavras(pLetra->letra);
 
             Palavra* pPalavra = pLetra->PalavraInicio.next;
             while (pPalavra)
             {
-                fprintf(pont_arq, "%c {%s: %s}\n", pLetra->letra, pPalavra->nome, pPalavra->descricao);
+                fprintf(pont_arq, "%c{Nome:\"%s\",Descrição:%s}\n", pLetra->letra, pPalavra->nome, pPalavra->descricao);
                 pPalavra = pPalavra->next;
             }
-            //printf("\n");
+            printf("\n");
 
             pLetra = pLetra->next;
         }
@@ -1077,5 +1090,26 @@ void salvar_lista_arquivos()
     }
 
     fclose(pont_arq);
+}
 
+void carregar_lista_na_RAM()
+{
+    pont_arq = fopen("lista_arquivos.txt", "r");
+
+    char letra;
+    char nome[TAM_PAL_MAX], descricao[TAM_DES_MAX];
+
+    if(pont_arq){
+        do{
+            fscanf(pont_arq, "%c{Nome:\"%[^\"]\",Descrição:%[^}]}\n", &letra, nome, descricao);
+            Palavra* p = insert_Palavra(nome, descricao);
+
+        }while(!feof(pont_arq));
+    }
+    else{
+        printf("Não exite arquivo!");
+        getch();
+    }
+
+    fclose(pont_arq);
 }
